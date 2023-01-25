@@ -1,0 +1,26 @@
+services:
+  db:
+    image: mariadb
+    command: '--default-authentication-plugin=mysql_native_password'
+    restart: always
+    secrets:
+      - db-password
+    environment:
+      - MYSQL_DATABASE=example
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 3306
+      - 33060
+  web:
+    build:
+      context: .
+    restart: always
+    ports:
+      - '8080:8080'
+    secrets:
+      - db-password
+    depends_on:
+      - db
+secrets:
+  db-password:
+    file: ./root_pass_for_db.txt
