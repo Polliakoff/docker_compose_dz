@@ -2,15 +2,18 @@ import os
 from flask import Flask
 import mysql.connector
 
+
 class DBManager:
-    def __init__(self, database='example', host="db", user="root", pswd=None):
+    def __init__(self, database='example', host="db", user="root", password_file=None):
+        pf = open(password_file, 'r')
         self.connection = mysql.connector.connect(
             user=user,
-            password=pswd,
+            password=pf.read(),
             host=host, # name of the mysql service as set in the docker compose file
             database=database,
             auth_plugin='mysql_native_password'
         )
+        pf.close()
         self.cursor = self.connection.cursor()
 
     def populate_db(self):
@@ -26,21 +29,15 @@ class DBManager:
             rec.append(c[0])
         return rec
 
+
 server = Flask(__name__)
 conn = None
 
 @server.route('/')
 def listBlog():
-    password_file='/run/secrets/db-password'    
-    pf = open(password_file, 'r')
-    password=str(pf.read())
-    pf.close()
-    l=len(password)
-    if password[l-1] == '\n':
-        password = password[:l-1]
     global conn
     if not conn:
-        conn = DBManager(pswd=password)
+        conn = DBManager(password_file='/run/secrets/db-password')
         conn.populate_db()
     rec = conn.query_titles()
 
@@ -49,6 +46,6 @@ def listBlog():
         response = response  + '<div>   Hello  ' + c + '</div>'
     return response
 
-if __name__ == '__main__':
-    server.run(host="0.0.0.0")
 
+if __name__ == '__main__':
+    server.run()
