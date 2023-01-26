@@ -8,6 +8,6 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
-EXPOSE 8080
+EXPOSE 5000
 
 CMD ["python3", "hello.py"]
